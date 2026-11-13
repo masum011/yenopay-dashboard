@@ -1,14 +1,17 @@
 {
-  "name": "react-example",
+  "name": "yenopay-platform",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "dev:admin": "npm run dev --workspace=super-admin",
+    "dev:retailer": "npm run dev --workspace=retailer",
+    "build:admin": "npm run build --workspace=super-admin",
+    "build:retailer": "npm run build --workspace=retailer",
+    "build": "npm run build:admin && npm run build:retailer"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

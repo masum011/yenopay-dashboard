@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,20 +16,33 @@ import {
   Menu,
   X,
   ArrowUpRight,
+  ChevronDown,
 } from 'lucide-react';
-import { BrandLogo } from '@yenopay/shared-ui';
+import {
+  BrandLogo,
+  UserProfileModal,
+  useAuth,
+} from '@yenopay/shared-ui';
+import { getInitials } from '@yenopay/shared-utils';
 
 const NAV_GROUPS = [
   {
-    label: 'Core',
+    label: 'Super Admin',
     items: [
-      { to: '.', end: true, label: 'Overview', icon: LayoutDashboard },
-      { to: 'retailers', label: 'Retailers', icon: Store },
-      { to: 'distributors', label: 'Distributors', icon: Network },
+      { to: 'audit-logs', label: 'Audit Logs', icon: ShieldCheck },
+      { to: 'settings', label: 'Admin Settings', icon: Settings },
     ],
   },
   {
-    label: 'Finance & Ledger',
+    label: 'Retailer Operations',
+    items: [
+      { to: 'retailers', label: 'Retailers', icon: Store },
+      { to: 'distributors', label: 'Distributors', icon: Network },
+      { to: 'support', label: 'Support Tickets', icon: LifeBuoy },
+    ],
+  },
+  {
+    label: 'Financial Operations',
     items: [
       { to: 'transactions', label: 'Transactions', icon: ArrowLeftRight },
       { to: 'wallets', label: 'Wallets', icon: Wallet },
@@ -39,12 +52,9 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: 'Platform & Governance',
+    label: 'API Management',
     items: [
       { to: 'api-providers', label: 'API Providers', icon: ServerCog },
-      { to: 'support', label: 'Support Tickets', icon: LifeBuoy },
-      { to: 'audit-logs', label: 'Audit Logs', icon: ShieldCheck },
-      { to: 'settings', label: 'Admin Settings', icon: Settings },
     ],
   },
 ];
@@ -66,17 +76,41 @@ const ROUTE_TITLES = {
 
 export function AdminLayout({ basePath = '', onSwitchPortal }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState(() =>
+    Object.fromEntries(
+      NAV_GROUPS.map(({ label }, index) => [label, index < 2])
+    )
+  );
   const location = useLocation();
+  const { profile, signOut } = useAuth();
 
   const normalizedSubpath = location.pathname
     .replace(basePath, '')
     .replace(/^\/+|\/+$/g, '');
   const currentTitle = ROUTE_TITLES[normalizedSubpath] || 'Super Admin';
 
+  useEffect(() => {
+    const activeGroup = NAV_GROUPS.find((group) =>
+      group.items.some((item) => item.to === normalizedSubpath)
+    );
+    if (!activeGroup) return;
+
+    setOpenGroups((current) =>
+      current[activeGroup.label]
+        ? current
+        : { ...current, [activeGroup.label]: true }
+    );
+  }, [normalizedSubpath]);
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-[#3F2066] text-slate-300">
       <div className="flex h-16 items-center justify-between border-b border-slate-800/80 px-5">
-        <BrandLogo variant="dark" portalLabel="Super Admin" />
+        <BrandLogo
+          variant="dark"
+          portalLabel="Super Admin"
+          imageClassName="w-30"
+        />
         <button
           type="button"
           onClick={() => setMobileOpen(false)}
@@ -88,53 +122,78 @@ export function AdminLayout({ basePath = '', onSwitchPortal }) {
       </div>
 
       <nav className="min-h-0 flex-1 overflow-hidden px-3 py-3 space-y-2">
+        <NavLink
+          to="."
+          end
+          onClick={() => setMobileOpen(false)}
+          className={({ isActive }) =>
+            `flex w-full items-center gap-3 px-3 py-1.5 text-sm leading-4 font-medium transition-colors whitespace-nowrap ${
+              isActive
+                ? 'bg-brand-gold-500 text-brand-purple-950 shadow-sm'
+                : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+            }`
+          }
+        >
+          <LayoutDashboard className="h-4 w-4 shrink-0" />
+          <span className="truncate py-1">Overview</span>
+        </NavLink>
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>
-            <p className="mb-1 px-3 text-xs font-semibold tracking-wider text-slate-300/80">
-              {group.label}
-            </p>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    onClick={() => setMobileOpen(false)}
-                    className={({ isActive }) =>
-                      `flex w-full items-center gap-3 px-3 py-1.5 text-sm leading-4 font-medium transition-colors whitespace-nowrap ${
-                        isActive
-                          ? 'bg-brand-gold-500 text-brand-purple-950 shadow-sm'
-                          : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
-                      }`
-                    }
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate py-1">{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setOpenGroups((current) => ({
+                  ...current,
+                  [group.label]: !current[group.label],
+                }))
+              }
+              aria-expanded={openGroups[group.label]}
+              aria-controls={`admin-nav-${group.label
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')}`}
+              className="mb-1 flex w-full items-center justify-between rounded px-3 py-1 text-left text-xs font-semibold tracking-wider text-slate-300/80 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              <span>{group.label}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openGroups[group.label] ? '' : '-rotate-90'
+                }`}
+              />
+            </button>
+            {openGroups[group.label] && (
+              <div
+                id={`admin-nav-${group.label
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')}`}
+                className="space-y-0.5"
+              >
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `flex w-full items-center gap-3 px-3 py-1.5 text-sm leading-4 font-medium transition-colors whitespace-nowrap ${
+                          isActive
+                            ? 'bg-brand-gold-500 text-brand-purple-950 shadow-sm'
+                            : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                        }`
+                      }
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate py-1">{item.label}</span>
+                    </NavLink>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </nav>
 
-      <div className="border-t border-slate-800/80 p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-semibold text-cyan-300">
-            VM
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-white">
-              Vikramaditya Mehta
-            </p>
-            <p className="truncate text-[11px] text-slate-400">
-              Chief Platform Admin
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -183,9 +242,24 @@ export function AdminLayout({ basePath = '', onSwitchPortal }) {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <span className="hidden text-xs text-slate-500 md:inline">
-              YenoPay Operations · INR (₹)
-            </span>
+            <button
+              type="button"
+              onClick={() => setProfileModalOpen(true)}
+              className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple-500"
+              aria-label="Open profile"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-purple-100 text-xs font-semibold text-brand-purple-800">
+                {getInitials(profile.full_name)}
+              </span>
+              <span className="hidden min-w-0 sm:block">
+                <span className="block max-w-36 truncate text-xs font-semibold text-slate-800">
+                  {profile.full_name}
+                </span>
+                <span className="block max-w-36 truncate text-[11px] text-slate-500">
+                  {profile.email}
+                </span>
+              </span>
+            </button>
             {onSwitchPortal && (
               <button
                 type="button"
@@ -205,6 +279,13 @@ export function AdminLayout({ basePath = '', onSwitchPortal }) {
           </div>
         </main>
       </div>
+      <UserProfileModal
+        open={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        onSignOut={signOut}
+        profile={profile}
+        portalLabel="Super Admin"
+      />
     </div>
   );
 }

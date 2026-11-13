@@ -18,7 +18,11 @@ import {
   X,
   ArrowUpRight,
 } from 'lucide-react';
-import { BrandLogo } from '@yenopay/shared-ui';
+import {
+  BrandLogo,
+  UserProfileModal,
+  useAuth,
+} from '@yenopay/shared-ui';
 import { formatINR, getInitials } from '@yenopay/shared-utils';
 import { useRetailerStore } from '../hooks/useRetailerStore.jsx';
 
@@ -80,9 +84,11 @@ const ROUTE_TITLES = {
 
 export function RetailerLayout({ basePath = '', onSwitchPortal }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, wallet, overviewStats } = useRetailerStore();
+  const { wallet, overviewStats } = useRetailerStore();
+  const { profile: userProfile, signOut } = useAuth();
 
   const normalizedSubpath = location.pathname
     .replace(basePath, '')
@@ -145,19 +151,24 @@ export function RetailerLayout({ basePath = '', onSwitchPortal }) {
       </nav>
 
       <div className="border-t border-slate-800/80 p-4">
-        <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setProfileModalOpen(true)}
+          className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          aria-label="Open profile"
+        >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-semibold text-cyan-300">
-            {getInitials(profile.ownerName)}
+            {getInitials(userProfile.full_name)}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold text-white">
-              {profile.outletName}
+              {userProfile.full_name}
             </p>
             <p className="truncate font-mono text-[11px] text-slate-400">
-              {profile.code}
+              {userProfile.email}
             </p>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );
@@ -249,6 +260,13 @@ export function RetailerLayout({ basePath = '', onSwitchPortal }) {
           </div>
         </main>
       </div>
+      <UserProfileModal
+        open={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        onSignOut={signOut}
+        profile={userProfile}
+        portalLabel="Retailer Portal"
+      />
     </div>
   );
 }

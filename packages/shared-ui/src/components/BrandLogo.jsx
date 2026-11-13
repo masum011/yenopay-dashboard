@@ -1,7 +1,11 @@
 import React from 'react';
 import logoImage from '../assets/yenopay-logo.png';
 
-export function BrandLogo({ variant = 'light', portalLabel }) {
+export function BrandLogo({
+  variant = 'light',
+  portalLabel,
+  imageClassName = 'w-28',
+}) {
   const isLightText = variant === 'dark';
 
   return (
@@ -9,7 +13,7 @@ export function BrandLogo({ variant = 'light', portalLabel }) {
       <img
         src={logoImage}
         alt="YenoPay"
-        className="block h-auto w-28 rounded-lg object-contain pt-1"
+        className={`block h-auto ${imageClassName} rounded-lg object-contain pt-1`}
       />
       {portalLabel && (
         <span

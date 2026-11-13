@@ -39,3 +39,7 @@ pnpm --filter @yenopay/retailer build
 Each application ships with its own `netlify.toml` and SPA redirect rules:
 - **Super Admin Site**: Base directory `apps/super-admin` (or root build `pnpm --filter @yenopay/super-admin build`), publish `apps/super-admin/dist`.
 - **Retailer Site**: Base directory `apps/retailer` (or root build `pnpm --filter @yenopay/retailer build`), publish `apps/retailer/dist`.
+
+## Supabase Authentication
+
+Both dashboards use Supabase email/password authentication and require an active row in `public.profiles` with the matching role (`super_admin` or `retailer`). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in each app's local `.env.local` file and in its deployment environment. Apply the migrations in order, create users through Supabase Auth, then provision matching profile rows from a trusted admin workflow. Public sign-up is not enabled by these dashboards. Dashboard business data remains mock data in V1.
