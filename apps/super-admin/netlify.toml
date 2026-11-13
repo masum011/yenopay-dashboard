@@ -1,0 +1,9 @@
+[build]
+  base = "apps/super-admin"
+  command = "pnpm --filter @yenopay/super-admin build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

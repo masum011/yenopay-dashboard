@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./*"],
+      "@yenopay/shared-ui": ["./packages/shared-ui/src/index.js"],
+      "@yenopay/shared-utils": ["./packages/shared-utils/src/index.js"],
+      "@super-admin/*": ["./apps/super-admin/src/*"],
+      "@retailer/*": ["./apps/retailer/src/*"]
+    },
+    "noEmit": true
+  },
+  "include": ["src", "apps", "packages"],
+  "exclude": ["dist", "node_modules"]
+}

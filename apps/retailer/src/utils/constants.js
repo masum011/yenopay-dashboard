@@ -1,0 +1,1 @@
+export const RETAILER_PORTAL_VERSION = 'V1';

@@ -1,0 +1,6 @@
+{
+  "name": "YenoPay Dashboards",
+  "description": "YenoPay fintech monorepo featuring independent Super Admin and Retailer banking operations dashboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

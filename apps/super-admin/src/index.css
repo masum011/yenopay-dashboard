@@ -1,0 +1,49 @@
+@import "tailwindcss";
+@source "../../../packages/shared-ui/src";
+
+@theme {
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-brand-purple-950: #29123b;
+  --color-brand-gold-500: #f7b910;
+  --color-brand-gold-600: #e8a70a;
+  --color-cyan-50: #f7f3fa;
+  --color-cyan-100: #efe6f6;
+  --color-cyan-200: #ddc9eb;
+  --color-cyan-300: #c5a4dc;
+  --color-cyan-400: #9f72c1;
+  --color-cyan-500: #6a3d92;
+  --color-cyan-600: #552778;
+  --color-cyan-700: #432064;
+  --color-cyan-800: #36174f;
+  --color-cyan-900: #2c123f;
+  --color-cyan-950: #1d0b2b;
+  --color-teal-50: #eff8f5;
+  --color-teal-100: #dcefe9;
+  --color-teal-200: #bee0d4;
+  --color-teal-300: #93cab8;
+  --color-teal-400: #5aaa92;
+  --color-teal-500: #2d8d78;
+  --color-teal-600: #23735f;
+  --color-teal-700: #195a4a;
+  --color-teal-800: #15493d;
+  --color-teal-900: #103a31;
+  --color-teal-950: #0a2922;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -1,0 +1,11 @@
+project_id = "yenopay-platform"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[auth]
+enabled = true
+site_url = "https://admin.yenopay.com"
+additional_redirect_urls = ["https://retailer.yenopay.com"]

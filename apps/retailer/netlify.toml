@@ -1,0 +1,9 @@
+[build]
+  base = "apps/retailer"
+  command = "pnpm --filter @yenopay/retailer build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
