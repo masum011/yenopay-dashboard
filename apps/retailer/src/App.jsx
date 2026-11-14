@@ -10,6 +10,13 @@ export function RetailerApp({ basePath = '', onSwitchPortal }) {
       client={supabase}
       requiredRole="retailer"
       portalLabel="Retailer Portal"
+      requirePrivacyPolicy
+      allowPasswordRecovery
+      compactLogin
+      supportContact={{
+        phone: '9800141571',
+        email: 'masumr111@gmail.com',
+      }}
     >
       <NotificationProvider>
         <RetailerStoreProvider>

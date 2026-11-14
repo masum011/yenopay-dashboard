@@ -9,6 +9,7 @@ import React, {
 import { Button } from './Button.jsx';
 import { LoadingSpinner } from './LoadingSpinner.jsx';
 import { LoginScreen } from './LoginScreen.jsx';
+import { PasswordRecoveryScreen } from './PasswordRecoveryScreen.jsx';
 
 const AuthContext = createContext(null);
 
@@ -64,6 +65,10 @@ export function SupabaseAuthProvider({
   client,
   requiredRole,
   portalLabel,
+  requirePrivacyPolicy = false,
+  allowPasswordRecovery = false,
+  compactLogin = false,
+  supportContact,
   children,
 }) {
   const [session, setSession] = useState(null);
@@ -73,6 +78,7 @@ export function SupabaseAuthProvider({
   const [profileError, setProfileError] = useState('');
   const [signInError, setSignInError] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (!client) {
@@ -83,8 +89,10 @@ export function SupabaseAuthProvider({
     let active = true;
     const {
       data: { subscription },
-    } = client.auth.onAuthStateChange((_event, nextSession) => {
+    } =     client.auth.onAuthStateChange((event, nextSession) => {
       if (!active) return;
+      if (event === 'PASSWORD_RECOVERY') setIsPasswordRecovery(true);
+      if (event === 'SIGNED_OUT') setIsPasswordRecovery(false);
       setSession(nextSession);
       setSignInError('');
       setProfileError('');
@@ -123,7 +131,7 @@ export function SupabaseAuthProvider({
   }, [client]);
 
   useEffect(() => {
-    if (!client || sessionLoading || !session) {
+    if (!client || sessionLoading || !session || isPasswordRecovery) {
       setProfile(null);
       setProfileError('');
       setProfileLoading(false);
@@ -165,7 +173,7 @@ export function SupabaseAuthProvider({
     return () => {
       active = false;
     };
-  }, [client, session, sessionLoading]);
+  }, [client, isPasswordRecovery, session, sessionLoading]);
 
   const signIn = useCallback(
     async ({ email, password }) => {
@@ -187,20 +195,54 @@ export function SupabaseAuthProvider({
     [client]
   );
 
+  const sendPasswordReset = useCallback(
+    async (email) => {
+      if (!client) throw new Error('Password recovery is not available.');
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const { error } = await client.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) throw error;
+    },
+    [client]
+  );
+
+  const updatePassword = useCallback(
+    async (password) => {
+      if (!client) throw new Error('Password recovery is not available.');
+      const { error } = await client.auth.updateUser({ password });
+      if (error) throw error;
+    },
+    [client]
+  );
+
   const signOut = useCallback(async () => {
     if (!client) return;
     const { error } = await client.auth.signOut();
     if (error) throw error;
   }, [client]);
+
   const authValue = useMemo(
     () => ({ session, profile, signOut }),
     [session, profile, signOut]
   );
 
+  if (isPasswordRecovery && session) {
+    return (
+      <PasswordRecoveryScreen
+        onSubmit={updatePassword}
+        onContinue={() => setIsPasswordRecovery(false)}
+      />
+    );
+  }
+
   if (!client) {
     return (
       <LoginScreen
         portalLabel={portalLabel}
+        requirePrivacyPolicy={requirePrivacyPolicy}
+        supportContact={supportContact}
+        compactLogin={compactLogin}
         disabled
         error="Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for this app."
       />
@@ -222,7 +264,11 @@ export function SupabaseAuthProvider({
     return (
       <LoginScreen
         portalLabel={portalLabel}
+        requirePrivacyPolicy={requirePrivacyPolicy}
+        supportContact={supportContact}
+        compactLogin={compactLogin}
         onSubmit={signIn}
+        onResetPassword={allowPasswordRecovery ? sendPasswordReset : undefined}
         error={signInError}
         isSubmitting={isSigningIn}
       />
